@@ -27,7 +27,10 @@ def api_question():
         model=os.getenv("OPENAI_MODEL", "gpt-4.1-mini"),
         input=prompt,
     )
-    return jsonify({"question": resp.output_text.strip()})
+
+    return jsonify({
+        "question": resp.output_text.strip()
+    })
 
 @app.post("/api/grade")
 def api_grade():
