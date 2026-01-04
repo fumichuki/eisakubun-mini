@@ -1,38 +1,37 @@
-const qEl = document.getElementById("question");
-const aEl = document.getElementById("answer");
-const rEl = document.getElementById("result");
-const uEl = document.getElementById("univ");
-const wcEl = document.getElementById("wc");
+const chat = document.getElementById("chat-container");
+const input = document.getElementById("user-input");
+const btn = document.getElementById("send-btn");
 
-function wordCount(s){
-  return (s.trim().match(/\\b[\\w']+\\b/g) || []).length;
+function addMessage(text, cls) {
+  const div = document.createElement("div");
+  div.className = `message ${cls}`;
+  div.textContent = text;
+  chat.appendChild(div);
+  chat.scrollTop = chat.scrollHeight;
 }
 
-aEl.addEventListener("input", () => {
-  wcEl.textContent = `現在 ${wordCount(aEl.value)}語`;
+async function fetchQuestion() {
+  const univ = document.getElementById("univ").value;
+  const res = await fetch(`/api/question?univ=${encodeURIComponent(univ)}`);
+  const data = await res.json();
+  addMessage(data.question, "ai");
+}
+
+btn.onclick = () => {
+  const text = input.value.trim();
+  if (!text) return;
+
+  addMessage(text, "user");
+  input.value = "";
+
+  if (text === "！") {
+    fetchQuestion();
+  }
+};
+
+input.addEventListener("keydown", e => {
+  if (e.key === "Enter") btn.onclick();
 });
 
-document.getElementById("btnQ").addEventListener("click", async () => {
-  rEl.textContent = "";
-  aEl.value = "";
-  wcEl.textContent = "";
-  const univ = encodeURIComponent(uEl.value);
-  const res = await fetch(`/api/question?univ=${univ}`);
-  const data = await res.json();
-  qEl.textContent = data.question;
-});
-
-document.getElementById("btnG").addEventListener("click", async () => {
-  const payload = {
-    univ: uEl.value,
-    question: qEl.textContent,
-    answer: aEl.value
-  };
-  const res = await fetch("/api/grade", {
-    method: "POST",
-    headers: {"Content-Type": "application/json"},
-    body: JSON.stringify(payload)
-  });
-  const data = await res.json();
-  rEl.textContent = data.result;
-});
+// 初回自動表示
+fetchQuestion();

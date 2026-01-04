@@ -1,40 +1,27 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta charset="UTF-8" />
   <title>英作文特訓</title>
   <link rel="stylesheet" href="/static/style.css" />
 </head>
 <body>
-  <div class="wrap">
-    <h1>英作文特訓</h1>
 
-    <div class="row">
-      <label>大学</label>
-      <select id="univ">
-        <option>汎用（大学受験）</option>
-        <option>九州大学</option>
-        <option>鹿児島大学</option>
-      </select>
-      <button id="btnQ">問題を出す</button>
-    </div>
+<div id="app">
+  <div id="chat-container"></div>
 
-    <h2>問題</h2>
-    <pre id="question" class="box"></pre>
+  <div id="input-area">
+    <select id="univ">
+      <option value="汎用（大学受験）">汎用（大学受験）</option>
+      <option value="九州大学">九州大学</option>
+      <option value="鹿児島大学">鹿児島大学</option>
+    </select>
 
-    <h2>あなたの解答（英文）</h2>
-    <textarea id="answer" rows="7" class="box"></textarea>
-
-    <div class="row">
-      <button id="btnG">採点する</button>
-      <span id="wc"></span>
-    </div>
-
-    <h2>結果</h2>
-    <pre id="result" class="box"></pre>
+    <input id="user-input" placeholder="！で次の問題" />
+    <button id="send-btn">送信</button>
   </div>
+</div>
 
-  <script src="/static/main.js"></script>
+<script src="/static/main.js"></script>
 </body>
 </html>
