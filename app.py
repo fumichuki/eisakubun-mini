@@ -3,6 +3,8 @@ from flask import Flask, request, jsonify, render_template
 from openai import OpenAI
 
 app = Flask(__name__)
+if not os.getenv("OPENAI_API_KEY"):
+    raise RuntimeError("OPENAI_API_KEY is not set on Render Environment Variables")
 client = OpenAI()  # OPENAI_API_KEY を環境変数から読む
 
 def load_prompt(path: str) -> str:
