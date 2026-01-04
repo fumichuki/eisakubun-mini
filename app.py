@@ -1,36 +1,49 @@
-from flask import Flask, jsonify
+import os
+from flask import Flask, request, jsonify, render_template
+from openai import OpenAI
 
 app = Flask(__name__)
+client = OpenAI()  # OPENAI_API_KEY を環境変数から読む
 
-@app.route("/")
+def load_prompt(path: str) -> str:
+    with open(path, "r", encoding="utf-8") as f:
+        return f.read()
+
+QUESTION_PROMPT = load_prompt("prompts/question_prompt.txt")
+GRADING_PROMPT  = load_prompt("prompts/grading_prompt.txt")
+
+@app.get("/")
 def index():
-    return "Hello from Render + Codespaces!"
+    return render_template("index.html")
 
-@app.route("/api/question")
-def get_question():
-    """
-    最小バージョン：
-    固定の英作文問題を JSON で返すだけのAPI
-    """
-    question = {
-        "theme": "環境問題",
-        "title": "プラスチックごみと私たちの生活",
-        "instruction": "次の内容を40〜60語の英文で書きなさい。",
-        "japanese": [
-            "現代社会ではプラスチックごみが増え続け、海や川の生き物に大きな影響を与えています。",
-            "私たち一人ひとりが、使い捨てプラスチックを減らすためにできることについて述べなさい。"
-        ],
-        "word_limit_min": 40,
-        "word_limit_max": 60,
-        "hints": [
-            {"en": "plastic waste", "ja": "プラスチックごみ"},
-            {"en": "environment", "ja": "環境"},
-            {"en": "reduce", "ja": "減らす"},
-            {"en": "reusable bag", "ja": "再利用できるバッグ"},
-            {"en": "responsibility", "ja": "責任"}
-        ]
-    }
-    return jsonify(question)
+@app.get("/api/question")
+def api_question():
+    univ = request.args.get("univ", "汎用（大学受験）")
+    prompt = QUESTION_PROMPT.replace("{{UNIV}}", univ)
+
+    resp = client.responses.create(
+        model=os.getenv("OPENAI_MODEL", "gpt-4.1-mini"),
+        input=prompt,
+    )
+    return jsonify({"question": resp.output_text.strip()})
+
+@app.post("/api/grade")
+def api_grade():
+    data = request.get_json(force=True)
+    answer = (data.get("answer") or "").strip()
+    question = (data.get("question") or "").strip()
+    univ = (data.get("univ") or "汎用（大学受験）").strip()
+
+    prompt = (GRADING_PROMPT
+              .replace("{{UNIV}}", univ)
+              .replace("{{QUESTION}}", question)
+              .replace("{{ANSWER}}", answer))
+
+    resp = client.responses.create(
+        model=os.getenv("OPENAI_MODEL", "gpt-4.1-mini"),
+        input=prompt,
+    )
+    return jsonify({"result": resp.output_text.strip()})
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
+    app.run(host="0.0.0.0", port=int(os.getenv("PORT", "5000")), debug=True)
